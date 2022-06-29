@@ -5,6 +5,7 @@ const $info = document.querySelector('.info');
 const $infoContent = document.querySelector('.info__content');
 const $screen = document.querySelector('.screen');
 const $video = document.querySelector('.screen__video');
+const $story = document.querySelector('.screen__story');
 const $screenSkip = document.querySelector('.screen__skip');
 const $skip = document.querySelector('.btn.skip');
 const $help = document.querySelector('.btn.help');
@@ -34,9 +35,11 @@ const state = {
 	isFound: [],
 	allItemsFound: false,
 	isStarted: false,
+	isKeys: false,
+	isAuth: false,
 	counter: 30000,
 	gameOver() {
-		return this.allItemsFound || this.isFound.length >= 15;
+		return this.allItemsFound || this.isFound.length >= 16;
 	}
 }
 
@@ -55,7 +58,11 @@ const renderElemInfo = ({ name, found }) => {
 		<div class="info__item">
 			<span class="info__status">
 				${Number(found)}
-					<img class="${found && 'visible'}" src="assets/images/check.png" alt="" />
+					<img 
+						class="${found && 'visible'}" 
+						src="assets/images/check.png" 
+						alt="image" 
+					/>
 			</span>
 			<div class="info__img">
 				<img
@@ -69,7 +76,64 @@ const renderElemInfo = ({ name, found }) => {
 	$infoContent.insertAdjacentHTML('beforeend', $item);
 }
 
+const storyBook = id => {
+	switch (id) {
+		case 1:
+			return `Плюшевый мишка - любимая игрушка детства.`;
+		case 2:
+			return `Бутылка с вином. Привезена из-за границы.`;
+		case 3:
+			return `Мистер Меовский - кот и домашний любимец. Джонни его обожает!`;
+		case 4:
+			return `Монетка 1$, лежит в бутыле, приносит удачу.`;
+		case 5:
+			return `Фрутоняш - толстый, вредный собакен. Все время выслеживает Мистера Меовский.
+			Не пускайте этого собакена в дом!`;
+		case 6:
+			return `Дневник с заметками. В нем есть записи о планах Джонни таких как:
+			стать самым лучшим геймдизайнером, поехать в Японию и тд.
+			Возможно они когда-нибудь да сбудутся...`;
+		case 7:
+			return `Фрутоняш - толстый, вредный собакен. Все время выслеживает Мистера Меовский.
+			Не пускайте этого собакена в дом!`;
+		case 8:
+			return `Хитро спрятанные ключи! 
+			Возможно они подойдут к какому-нибудь секретному замку.`;
+		case 9:
+			if (9 && state.isKeys) return `Отлично! Теперь можно посмотреть что внутри...
+			Внутри был логин и пароль от ноутбука.`;
+
+			return `Замок на коробке. Чтобы открыть его сначала нужно найти ключ.`;
+		case 10:
+			return `Ого, интересная записка пометка. Список дел на неделю:
+			1 - Дописать сценарий.
+			2 - Купить новых игр.
+			3 - Послушать новый альбом Linkin Park.`;
+		case 11:
+			if (11 && state.isAuth) return `Вы узнали логин и пароль. На рабочем столе находится сценарий к новой игре над которой усердно трудится Джонни.
+			Название игры Final Fantasy XVII.`;
+
+			return `Это рабочий макбук Джонни. 
+			Чтобы воспользоваться им, нужно знать логин и пароль...`;
+		case 12:
+			return `Телефон Sony Xperia. Много пропущенных звонков. Наверное друзья частенько названивают...`;
+		case 13:
+			return `Фотография мужчины и женщины. Возможно это родители Джонни.`;
+		case 14:
+			return `Чьи-то носки... Кто-то не любит убираться в комнате.`;
+		case 15:
+			return `Фу! Мерзский паук! Вот бы до него добрался тот собакен...`;
+		case 16:
+			return `Вау, это же консоль Nintendo Switch! Интересно, что игра установлена...
+			Pokemon Violet.`;
+		default:
+			break;
+	}
+}
+
 const updateStatus = id => {
+	const $text = document.querySelector('.screen__text.story');
+
 	state.items.find(item => {
 		if (item.id === id && item.found === false) {
 
@@ -83,13 +147,40 @@ const updateStatus = id => {
 					}
 				})
 			}
+
+			if (id === 8) {
+				state.isKeys = true;
+			}
+
+			if (id === 9) {
+				if (!state.isKeys) return;
+
+				state.isAuth = true;
+				item.found = true;
+				state.isFound.push(item);
+
+				return;
+			}
+			
+			if (id === 11) {
+				if (!state.isAuth) return;
+
+				item.found = true;
+				state.isFound.push(item);
+
+				return;
+			}
 			
 			item.found = true;
 			state.isFound.push(item);
 		}
 	})
-
+	
+	const story = storyBook(id);
 	$infoContent.innerHTML = '';
+	$story.classList.add('active');
+	$text.textContent = story;
+
     renderItemsInfo();
 	gameOver();
 }
@@ -106,10 +197,11 @@ $start.addEventListener('click', () => {
 })
 
 $skip.addEventListener('click', () => {
+	if ($story.classList.contains('active')) return;
 	if ($screenSkip.classList.contains('active')) return;
 	if ($video.classList.contains('active')) return;
 	if (state.allItemsFound) return;
-	if (state.isFound.length >= 15) return;
+	if (state.isFound.length >= 16) return;
 
 	$screenSkip.classList.toggle('active');
 	
@@ -145,9 +237,7 @@ $pay.addEventListener('click', () => {
 	$infoContent.innerHTML = '';
 
 	renderItemsInfo();
-	setTimeout(() => {
-		gameOver();
-	}, 3000);
+	gameOver();
 
 	$pay.parentElement.classList.remove('active');
 })
@@ -194,14 +284,16 @@ const showAd = function() {
 
 const gameOver = () => {
 	if (state.gameOver()) {
-		const $reload = document.querySelector('.btn.reload');
-
-		$gameOver.classList.add('active');
-		$reload.addEventListener('click', () => {
-			location.reload();
-
-            return false;
-		})
+		setTimeout(() => {
+			const $reload = document.querySelector('.btn.reload');
+	
+			$gameOver.classList.add('active');
+			$reload.addEventListener('click', () => {
+				location.reload();
+	
+				return false;
+			})
+		}, 3000);
 	}
 }
 
@@ -215,12 +307,21 @@ window.addEventListener('load', () => {
 	const $items = document.querySelectorAll('.item');
 
     $items.forEach(item => item.addEventListener('click', e => {
+		if ($story.classList.contains('active')) return;
 		if ($video.classList.contains('active')) return;
 		if ($gameOver.classList.contains('active')) return;
 
-		item.classList.add('found');
-
         const id = e.target.getAttribute('class');
+
+		if (Number(id) === 9 && !state.isKeys) {
+			item.classList.add('interesting');
+		}
+
+		if (Number(id) === 11 && !state.isAuth) {
+			item.classList.add('interesting');
+		}
+
+		item.classList.add('found');
 
 		updateStatus(Number(id));
     }))
